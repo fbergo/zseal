@@ -1,0 +1,16 @@
+#!/bin/sh
+
+OS=`uname -s`
+
+echo \#define ZSEAL_CONFIG_H 1 > config.h
+
+case "$OS" in
+Linux)
+	echo \#define LINUX 1 >> config.h
+	;;
+*)
+	echo >> config.h
+	;;
+esac
+
+
