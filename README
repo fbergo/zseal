@@ -32,6 +32,8 @@ To run from the command line:
   if host is omitted, the default "freechess.org" is used
   if host is given but port is omitted, the default 5000 is used
 
+  zseal -v or zseal --version will print the version and exit.
+
 To use with eboard:
 
    local installation for a single user:
