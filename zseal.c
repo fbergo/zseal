@@ -60,7 +60,6 @@ static void zid(char *dest, int sz);
 static void zdie();
 static void zchomp(char *s);
 static void zclean(char *s);
-static FILE * zpopen(char *binlist);
 
 const int   BSZ    =  8192;
 const char *TS_KEY = "Timestamp (FICS) v1.0 - programmed by Henrik Gram.";
@@ -244,21 +243,6 @@ static void zchomp(char *s) {
   while(i>=0 && s[i]<32) s[i--]=0;
 }
 
-static FILE * zpopen(char *binlist) {
-  FILE *f;
-  char tmp[1024], *t;
-
-  memset(tmp,0,1024);
-  strncpy(tmp,binlist,1023);
-  
-  for(t = strtok(tmp,":"); t!=NULL; t = strtok(NULL,":")) {
-    f = popen(t,"r");
-    if (f!=NULL) return f;
-  }
-
-  return NULL;
-}
-
 static void zid(char *dest, int sz) {
   char user[32], uname[128], mac[32], netdev[64], tmp[512];
   FILE *f;
@@ -280,7 +264,7 @@ static void zid(char *dest, int sz) {
   pw = getpwuid(geteuid());
   if (pw != NULL) strncpy(user,pw->pw_name,31);
 
-  f = zpopen("uname -a 2>&1");
+  f = popen("uname -a 2>&1","r");
   if (f!=NULL) {
     memset(tmp,0,512);
     if (fgets(tmp, 511, f)!=NULL) {
