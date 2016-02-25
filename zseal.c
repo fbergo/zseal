@@ -1,3 +1,32 @@
+/*
+  zseal - FICS Timeseal 2 client implementation
+  (C) 2016 Felipe Bergo <fbergo at gmail.com>
+  repository at https://github.com/fbergo/zseal
+  
+  The MIT License (MIT)
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+ */
+
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,10 +42,14 @@
 
 #include <netinet/in.h>
 #include <netdb.h>
+
+#ifdef LINUX
 #include <net/if.h>
 #include <net/if_arp.h>
-#include <sys/select.h>
 #include <sys/ioctl.h>
+#endif
+
+#include <sys/select.h>
 
 static int  zconnect(const char *hostname,int port);
 static int  zstamp(char *s,int l);
@@ -78,7 +111,7 @@ int main(int argc, char **argv) {
       zsend(fd,buffer1,&bpos1);
 
       if (bpos1==BSZ) {
-        fprintf(stderr,"internal buffer overflow.\n");
+        fprintf(stderr,"local input too long for our buffer.\n");
         exit(1);
       }
     }
@@ -94,7 +127,7 @@ int main(int argc, char **argv) {
 
       zreceive(fd,buffer2,&bpos2);
       if(bpos2==BSZ) {
-        fprintf(stderr,"internal buffer overflow!\n");
+        fprintf(stderr,"network input too long for our buffer.\n");
         exit(1);
       }
     }
@@ -228,15 +261,16 @@ static FILE * zpopen(char *binlist) {
 
 static void zid(char *dest, int sz) {
   char user[32], uname[128], mac[32], netdev[64], tmp[512];
-  char *t;
   FILE *f;
   struct passwd *pw;
 
+#ifdef LINUX
   struct ifreq ifr;
   int ifsock;
   unsigned char *mptr;
-
   const char *tok = " \t\n\r";
+  char *t;
+#endif
 
   memset(user,0,32);
   memset(uname,0,128);
@@ -256,6 +290,7 @@ static void zid(char *dest, int sz) {
     pclose(f);
   }
 
+#ifdef LINUX
   f = fopen("/proc/net/route","r");
   if (f!=NULL) {
     while(fgets(tmp, 511, f)!=NULL) {
@@ -288,14 +323,16 @@ static void zid(char *dest, int sz) {
       }
       close(ifsock);
     }
-
   }
+#endif
 
   zclean(user);
   zclean(uname);
   zclean(mac);
   
   memset(dest,0,sz);
-  snprintf(dest,sz-1,"%s (zseal)|%s %s",user, mac, uname);
+  if (strlen(mac)>0)
+    snprintf(dest,sz-1,"%s (zseal)|%s %s",user, mac, uname);
+  else
+    snprintf(dest,sz-1,"%s (zseal)|%s",user, uname);
 }
-
