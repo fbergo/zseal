@@ -57,12 +57,13 @@ static void zwrite(int fd,const char *buffer,int n);
 static void zreceive(int fd, char *buffer, int *rd);
 static void zsend(int fd, char *buffer, int *rd);
 static void zid(char *dest, int sz);
-static void zdie();
+static void zdie(int report);
 static void zchomp(char *s);
 static void zclean(char *s);
 
-const int   BSZ    =  8192;
-const char *TS_KEY = "Timestamp (FICS) v1.0 - programmed by Henrik Gram.";
+const int   BSZ     =  8192;
+const char *TS_KEY  = "Timestamp (FICS) v1.0 - programmed by Henrik Gram.";
+const char *VERSION = "20160225a";
 
 int main(int argc, char **argv) {
   char   hostname[256], hello[512], id[256];
@@ -72,6 +73,13 @@ int main(int argc, char **argv) {
   char  *buffer1=NULL, *buffer2 = NULL;
   int    bpos1=0, bpos2=0;
 
+  if (argc>=2) {
+    if (strcmp(argv[1],"-v")==0 || strcmp(argv[1],"--version")==0) {
+      fprintf(stderr,"zseal version %s (C) 2016 Felipe Bergo\n\n",VERSION);
+      return 0;
+    }
+  }
+
   strcpy(hostname,"freechess.org");
 
   zid(id,256);
@@ -79,7 +87,7 @@ int main(int argc, char **argv) {
 
   buffer1 = (char *) malloc(BSZ);
   buffer2 = (char *) malloc(BSZ);
-  if (buffer1 == NULL || buffer2 == NULL)  zdie();
+  if (buffer1 == NULL || buffer2 == NULL)  zdie(0);
   memset(buffer1,0,BSZ);
   memset(buffer2,0,BSZ);
 
@@ -87,7 +95,7 @@ int main(int argc, char **argv) {
   if (argc >= 3) { port = atoi(argv[2]); }
 
   fd = zconnect(hostname, port);
-  if (fd<0) zdie();
+  if (fd<0) zdie(1);
   n = zstamp(hello,strlen(hello));
   zwrite(fd,hello,n);
 
@@ -106,7 +114,7 @@ int main(int argc, char **argv) {
         exit(0);
       }
 
-      if (n==-1) zdie();
+      if (n==-1) zdie(1);
       zsend(fd,buffer1,&bpos1);
 
       if (bpos1==BSZ) {
@@ -122,7 +130,7 @@ int main(int argc, char **argv) {
         fprintf(stderr,"Connection closed by ICS\n");
         exit(0);
       }
-      if(n==-1) zdie();
+      if(n==-1) zdie(1);
 
       zreceive(fd,buffer2,&bpos2);
       if(bpos2==BSZ) {
@@ -135,22 +143,37 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-static void zdie() {
-  perror(NULL);
+static void zdie(int report) {
+  if (report) perror(NULL);
   exit(1);
 }
 
 static int zconnect(const char *hostname,int port) {
   int sockfd, res;
-  struct addrinfo *addr = NULL;
+  struct addrinfo *addr = NULL, hints;
   char s_port[16];
 
   memset(s_port,0,16);
   snprintf(s_port,15,"%d",port);
 
-  sockfd = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
-  if (sockfd < 0) return -1;
-  if (getaddrinfo(hostname,s_port,0,&addr)!=0) return -1;
+  memset(&hints,0,sizeof(hints));
+  hints.ai_family   = AF_INET;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = IPPROTO_TCP;
+  hints.ai_flags    |= AI_NUMERICSERV;
+
+  res = getaddrinfo(hostname,s_port,&hints,&addr);
+  if (res!=0) {
+    fprintf(stderr,"%s\n",gai_strerror(res));
+    exit(1);
+  }
+
+  sockfd = socket(addr->ai_family,addr->ai_socktype, addr->ai_protocol);
+  if (sockfd < 0) {
+    freeaddrinfo(addr);
+    return -1;
+  }
+
   res = connect(sockfd, addr->ai_addr, (int) addr->ai_addrlen);
   freeaddrinfo(addr);
   if (res < 0) return -1;
@@ -158,7 +181,7 @@ static int zconnect(const char *hostname,int port) {
 }
 
 static void zwrite(int fd,const char *buffer,int n) {
-  if (write(fd,buffer,n)==-1) zdie();
+  if (write(fd,buffer,n)==-1) zdie(1);
 }
 
 static int zstamp(char *s,int l) {
@@ -316,7 +339,7 @@ static void zid(char *dest, int sz) {
   
   memset(dest,0,sz);
   if (strlen(mac)>0)
-    snprintf(dest,sz-1,"%s (zseal)|%s %s",user, mac, uname);
+    snprintf(dest,sz-1,"%s (zseal %s)|%s %s",user, VERSION, mac, uname);
   else
-    snprintf(dest,sz-1,"%s (zseal)|%s",user, uname);
+    snprintf(dest,sz-1,"%s (zseal %s)|%s",user, VERSION, uname);
 }
