@@ -43,12 +43,6 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#ifdef LINUX
-#include <net/if.h>
-#include <net/if_arp.h>
-#include <sys/ioctl.h>
-#endif
-
 #include <sys/select.h>
 
 static int  zconnect(const char *hostname,int port);
@@ -63,7 +57,7 @@ static void zclean(char *s);
 
 const int   BSZ     =  8192;
 const char *TS_KEY  = "Timestamp (FICS) v1.0 - programmed by Henrik Gram.";
-const char *VERSION = "20160225a";
+const char *VERSION = "20160226a";
 
 int main(int argc, char **argv) {
   char   hostname[256], hello[512], id[256];
@@ -267,22 +261,12 @@ static void zchomp(char *s) {
 }
 
 static void zid(char *dest, int sz) {
-  char user[32], uname[128], mac[32], netdev[64], tmp[512];
+  char user[32], uname[128], tmp[512];
   FILE *f;
   struct passwd *pw;
 
-#ifdef LINUX
-  struct ifreq ifr;
-  int ifsock;
-  unsigned char *mptr;
-  const char *tok = " \t\n\r";
-  char *t;
-#endif
-
   memset(user,0,32);
   memset(uname,0,128);
-  memset(mac,0,32);
-  memset(netdev,0,64);
 
   pw = getpwuid(geteuid());
   if (pw != NULL) strncpy(user,pw->pw_name,31);
@@ -297,49 +281,9 @@ static void zid(char *dest, int sz) {
     pclose(f);
   }
 
-#ifdef LINUX
-  f = fopen("/proc/net/route","r");
-  if (f!=NULL) {
-    while(fgets(tmp, 511, f)!=NULL) {
-      zchomp(tmp);
-      t = strtok(tmp,tok);
-      if (t==NULL) continue;
-      if (strcmp(t, "Iface")==0) continue;
-      strncpy(netdev,t,63);
-      t = strtok(NULL, tok);
-      if (t==NULL) continue;
-      if (strcmp(t, "00000000")==0) break;
-      memset(netdev,0,64);
-    }
-    fclose(f);
-  }
-
-  if (netdev[0]!=0) {
-    memset(mac,0,32);
-    memset(ifr.ifr_name, 0, IFNAMSIZ);
-    strncpy(ifr.ifr_name, netdev, IFNAMSIZ-1);
-    ifsock = socket(AF_UNIX, SOCK_DGRAM, 0);
-    if (ifsock >= 0) {
-      if (ioctl(ifsock,SIOCGIFHWADDR,&ifr)>=0) {
-	if (ifr.ifr_hwaddr.sa_family==ARPHRD_ETHER) {
-	  mptr = (unsigned char *) ifr.ifr_hwaddr.sa_data;
-	  snprintf(mac,31,"%.2x:%.2x:%.2x:%.2x:%.2x:%.2x",
-		   (int)(mptr[0]),(int)(mptr[1]),(int)(mptr[2]),
-		   (int)(mptr[3]),(int)(mptr[4]),(int)(mptr[5]));
-	}
-      }
-      close(ifsock);
-    }
-  }
-#endif
-
   zclean(user);
   zclean(uname);
-  zclean(mac);
   
   memset(dest,0,sz);
-  if (strlen(mac)>0)
-    snprintf(dest,sz-1,"%s (zseal %s)|%s %s",user, VERSION, mac, uname);
-  else
-    snprintf(dest,sz-1,"%s (zseal %s)|%s",user, VERSION, uname);
+  snprintf(dest,sz-1,"%s (zseal %s)|%s",user, VERSION, uname);
 }
