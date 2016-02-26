@@ -187,9 +187,11 @@ static int zstamp(char *s,int l) {
   s[l++]=0x19;
   for(;l%12;l++)
     s[l]=0x31;
-#define SC(A,B) s[B]^=s[A]^=s[B],s[A]^=s[B]
-  for(n=0;n<l;n+=12)
-    SC(n,n+11), SC(n+2,n+9), SC(n+4,n+7);
+  for(n=0;n<l;n+=12) {
+    s[n+11] ^= s[n+0] ^= s[n+11]; s[n+0] ^= s[n+11];
+    s[n+9]  ^= s[n+2] ^= s[n+9];  s[n+2] ^= s[n+9];
+    s[n+7]  ^= s[n+4] ^= s[n+7];  s[n+4] ^= s[n+7];
+  }
   for(n=0;n<l;n++)
     s[n]=((s[n]|0x80)^TS_KEY[n%50])-32;
   s[l++]=0x80;
