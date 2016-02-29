@@ -57,7 +57,7 @@ static void zclean(char *s);
 
 const int   BSZ     =  8192;
 const char *TS_KEY  = "Timestamp (FICS) v1.0 - programmed by Henrik Gram.";
-const char *VERSION = "20160226a";
+const char *VERSION = "1.0 (20160229)";
 
 int main(int argc, char **argv) {
   char   hostname[256], hello[512], id[256];
