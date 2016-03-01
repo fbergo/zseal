@@ -16,7 +16,7 @@ The protocol was deduced from Marcello Mamino's openseal (an implementation of t
 and the java timeseal v2 implementation in Raptor by cday - https://github.com/Raptor-Fics-Interface/Raptor
 
 zseal is released under the MIT license (you can use this software as you please; the authors
-are not liable anything the software does to you or your stuff; derived works must
+are not liable for anything the software does to you or your stuff; derived works must
 retain the copyright notice)
 
 To compile:
