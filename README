@@ -21,7 +21,10 @@ retain the copyright notice)
 
 To compile:
 
-type 'make', the binary zseal will be generated in the current directory
+run './configure' (to generate config.h)
+run 'make' to compile.
+
+The zseal binary will be generated in the current directory
 
 Using/Installing:
 
