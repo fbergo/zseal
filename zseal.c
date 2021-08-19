@@ -252,7 +252,7 @@ static void zreceive(int fd, char *buffer, int *rd) {
 }
 
 static void zclean(char *s) {
-  int i;
+  unsigned int i;
   for(i=0;i<strlen(s);i++) if (s[i]<32 || s[i]>'z') s[i] = '_';
 }
 
