@@ -278,10 +278,7 @@ static void zid(char *dest, int sz) {
     memset(tmp,0,512);
     if (fgets(tmp, 511, f)!=NULL) {
       zchomp(tmp);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-truncation"      
-      strncpy(uname,tmp,127);
-#pragma GCC diagnostic pop
+      snprintf(uname,127,"%s",tmp);
     }
     pclose(f);
   }
