@@ -1,4 +1,5 @@
 ; -*-fundamental-*-
 
-### 1.0 - 2016.02.29
+### 1.2 - 2021.08.19
  * first release
+ * Compilation Warning updates

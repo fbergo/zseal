@@ -1,7 +1,7 @@
 ## zseal
 **open source client for FICS Timeseal v2 for Linux/Unix systems**
 
-:copyright:  2016 Felipe Bergo (Pulga @ FICS), fbergo at gmail_dot_com
+:copyright:  2021-2016 Felipe Bergo (Pulga @ FICS), fbergo at gmail_dot_com
 https://github.com/fbergo/zseal
 
 Timeseal is a protocol for network lag reporting and compensation used by the

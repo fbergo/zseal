@@ -1,6 +1,6 @@
 /*
   zseal - FICS Timeseal 2 client implementation
-  (C) 2016 Felipe Bergo <fbergo at gmail.com>
+  (C) 2021-2016 Felipe Bergo <fbergo at gmail.com>
   repository at https://github.com/fbergo/zseal
   
   The MIT License (MIT)
@@ -56,8 +56,8 @@ static void zchomp(char *s);
 static void zclean(char *s);
 
 const int   BSZ     =  8192;
-const char *TS_KEY  = "Timestamp (FICS) v1.0 - programmed by Henrik Gram.";
-const char *VERSION = "1.0 20160229";
+const char *TS_KEY  = "Timestamp (FICS) v1.2 - programmed by Henrik Gram.";
+const char *VERSION = "1.2 20210819";
 
 int main(int argc, char **argv) {
   char   hostname[256], hello[512], id[256];
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
 
   if (argc>=2) {
     if (strcmp(argv[1],"-v")==0 || strcmp(argv[1],"--version")==0) {
-      fprintf(stderr,"zseal version %s (C) 2016 Felipe Bergo\n\n",VERSION);
+      fprintf(stderr,"zseal version %s (C) 2021 Felipe Bergo\n\n",VERSION);
       return 0;
     }
   }
