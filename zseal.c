@@ -41,6 +41,7 @@
 #include <sys/socket.h>
 
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <netdb.h>
 
 #include <sys/select.h>
@@ -146,6 +147,7 @@ static int zconnect(const char *hostname,int port) {
   int sockfd, res;
   struct addrinfo *addr = NULL, hints;
   char s_port[16];
+  int yes = 1;
 
   memset(s_port,0,16);
   snprintf(s_port,15,"%d",port);
@@ -171,6 +173,7 @@ static int zconnect(const char *hostname,int port) {
   res = connect(sockfd, addr->ai_addr, (int) addr->ai_addrlen);
   freeaddrinfo(addr);
   if (res < 0) return -1;
+  setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (char *)&yes, sizeof(int));
   return sockfd;
 }
 
